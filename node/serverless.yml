@@ -1,0 +1,48 @@
+# Welcome to Serverless!
+# sls deploy --verbose
+# serverless logs -f receiver     / senderPrinter command check logs
+service: printer
+provider:
+  name: aws
+  runtime: nodejs10.x
+  region: eu-west-3
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "sqs:SendMessage"
+        - "sqs:GetQueueUrl"
+      Resource: "arn:aws:sqs:${self:provider.region}:300334162006:printing_new"
+    - Effect: "Allow"
+      Action:
+        - "sqs:ListQueues"
+      Resource: "arn:aws:sqs:${self:provider.region}:300334162006:*"
+functions:
+  #senderPrinter:
+  #  handler: server.senderPrinter # Reference to file handler.js & exported function hello
+  #  events: # Tous les services AWS peuvent declencher ici S3,SQS,SNS,API Gateway(http)...
+  #    - http:
+  #        method: get
+  #        path: send
+  receiver:
+    handler: server.handler
+    events:
+      - sqs: "arn:aws:sqs:${self:provider.region}:300334162006:printing_new"
+      - batchSize: 1
+resources:
+  Resources:
+    MyQueue:
+      Type: "AWS::SQS::Queue"
+      Properties:
+        QueueName: "printing_new"
+
+# you can add CloudFormation resource templates here
+#resources:
+#  Resources:
+#    NewResource:
+#      Type: AWS::S3::Bucket
+#      Properties:
+#        BucketName: my-new-bucket
+#  Outputs:
+#    NewOutput:
+#      Description: "Description for the output"
+#      Value: "Some output value"
